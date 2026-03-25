@@ -2,7 +2,7 @@
 TurboQuant: Extreme KV Cache Quantization
 Open-source implementation of Google TurboQuant (arXiv:2504.19874)
 
-https://github.com/hackimov/turboquant
+https://github.com/hackimov/turboquant-kv
 """
 
 __version__ = "0.1.0"
