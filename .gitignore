@@ -1,0 +1,24 @@
+__pycache__/
+.idea
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+venv_turboquant/
+venv_turboquant_py311/
+ENV/
+*.egg-info/
+dist/
+build/
+*.so
+*.dylib
+*.dll
+*.out
+*.log
+.cache
+.ipynb_checkpoints
+.DS_Store
+# local vLLM tree for integration research (not shipped)
+_vllm_upstream_ref/
